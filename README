@@ -1,4 +1,3 @@
 pf-inetcontrol is a simple php script to add/remove networks to alias 'BlockInetHosts' in pfSense.
 The code is just a simple modification of pfSense script 'easyrule'.
 Using this alias in an appropiate rule of pfSense, the script can be used to provide a quick and simple way to block/unblock internet access to some subnets.
-
