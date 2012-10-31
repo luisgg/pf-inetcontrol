@@ -339,4 +339,21 @@ function easyrule_parse_pass($int, $src) {
 	return "Unknown error.";
 }
 
+function easyrule_parse_status($int, $src) {
+	$action = 'check status';
+	if (!empty($src) && !empty($int)) {
+		if (!is_ipaddr($src)) {
+			return "Tried to ".$action." invalid IP: " . htmlspecialchars($src);
+		}
+		if (easyrule_block_host($action, $src, $int)) {
+			return "Network deleted successfully from alias";
+		} else {
+			return "Failed to delete Network from alias";
+		}
+	} else {
+		return "Tried to ".$action." but had no host IP or interface";
+	}
+	return "Unknown error.";
+}
+
 ?>

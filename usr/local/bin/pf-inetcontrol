@@ -94,18 +94,24 @@ if (($argc > 1) && !empty($argv[1])) {
 		case 'pass':
 			$message = easyrule_parse_pass($argv[3], $argv[2]);
 			break;
+		case 'status':
+			$message = easyrule_parse_status($argv[3], $argv[2]);
+			break;
 	}
 	echo $message . "\n";
 } else {
 	// Print usage:
 	echo "usage:\n";
-	echo "     " . basename($argv[0]) . " {block|pass} <source IP> <netmask>\n";
+	echo "     " . basename($argv[0]) . " {block|pass|status} <source IP> <netmask>\n";
 	echo "\n";
 	echo " Block example:\n";
 	echo "     " . basename($argv[0]) . " block 1.2.3.4 24\n";
 	echo "\n";
 	echo " Pass example (protocol with port):\n";
 	echo "     " . basename($argv[0]) . " pass 1.2.3.4 16\n";
+	echo "\n";
+	echo " Status example (protocol with port):\n";
+	echo "     " . basename($argv[0]) . " status 1.2.3.4 16\n";
 	echo "\n";
 }
 ?>
