@@ -170,6 +170,24 @@ function easyrule_block_alias_del($host, $int = '24') {
 
 }
 
+function easyrule_block_alias_test($host, $int = '24') {
+	global $blockaliasname, $config;
+        /* If the host isn't a valid IP address, bail */
+        if (!is_ipaddr($host))
+                return false;
+
+        /* If there are no aliases, start an array */
+        if (!is_array($config['aliases']['alias']))
+		return true;
+	$a_aliases = &$config['aliases']['alias'];
+	$id = easyrule_block_alias_getid();
+	if ($id === false)
+		return true;
+	if (in_array($host.'/'.$int, explode(" ", $a_aliases[$id]['address'])))
+		return false;
+	return true;
+}
+
 function easyrule_block_alias_add($host, $int = '24') {
 	global $blockaliasname, $config;
 	/* If the host isn't a valid IP address, bail */
@@ -345,10 +363,10 @@ function easyrule_parse_status($int, $src) {
 		if (!is_ipaddr($src)) {
 			return "Tried to ".$action." invalid IP: " . htmlspecialchars($src);
 		}
-		if (easyrule_block_host($action, $src, $int)) {
-			return "Network deleted successfully from alias";
+		if (easyrule_block_alias_test($src, $int)) {
+			return "Current status is ENABLED";
 		} else {
-			return "Failed to delete Network from alias";
+			return "Current status is LOCKED";
 		}
 	} else {
 		return "Tried to ".$action." but had no host IP or interface";
