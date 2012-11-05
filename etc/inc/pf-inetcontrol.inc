@@ -32,7 +32,8 @@
 	pfSense_MODULE:	filter
 */
 
-$blockaliasname = 'BlockInetHosts';
+$blockaliasname = 'BlockInetLans';
+$managedaliasname = 'ManagedInetLans';
 $protocols_with_ports = array('tcp', 'udp');
 require_once("functions.inc");
 require_once("util.inc");
@@ -133,6 +134,19 @@ function easyrule_block_alias_getid() {
 	return false;
 }
 
+function managed_alias_getid() {
+	global $managedaliasname, $config;
+	if (!is_array($config['aliases']))
+		return false;
+
+	/* Hunt down an alias with the name we want, return its id */
+	foreach ($config['aliases']['alias'] as $aliasid => $alias)
+		if ($alias['name'] == $managedaliasname)
+			return $aliasid;
+
+	return false;
+}
+
 function easyrule_block_alias_del($host, $int = '24') {
 	global $blockaliasname, $config;
 	/* If the host isn't a valid IP address, bail */
@@ -205,7 +219,17 @@ function easyrule_block_alias_add($host, $int = '24') {
 	if ($id === false)
 		unset($id);
 
+	$mngid = managed_alias_getid();
+	if (!($mngid === false) && $a_aliases[$mnid]) {
+		if (!(in_array($host.'/'.$int, explode(" ", $a_aliases[$mngid]['address']))))
+			return false;
+	} else {
+		return false;
+	}
+
+
 	$alias = array();
+
 	
 	if (isset($id) && $a_aliases[$id]) {
 		/* Make sure this IP isn't already in the list. */
