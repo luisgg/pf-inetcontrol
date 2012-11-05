@@ -220,7 +220,7 @@ function easyrule_block_alias_add($host, $int = '24') {
 		unset($id);
 
 	$mngid = managed_alias_getid();
-	if (!($mngid === false) && $a_aliases[$mnid]) {
+	if (!($mngid === false) && $a_aliases[$mngid]) {
 		if (!(in_array($host.'/'.$int, explode(" ", $a_aliases[$mngid]['address']))))
 			return false;
 	} else {
