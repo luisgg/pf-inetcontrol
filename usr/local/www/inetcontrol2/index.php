@@ -33,7 +33,7 @@ $status=easyrule_block_alias_test(getIP(), 24);
 echo '<br><br>';
 echo '<center><div class="text_mat"><font color=FF0000>Acceso desde el aula '.getAula($lanip)."</font></div>";
 if ($status) {
-	echo '<center><div class="text_mat"><font color=FF0000>Conexi&oacutte;n a internet: HABILITADA</font></div>';
+	echo '<center><div class="text_mat"><font color=FF0000>Conexi&oacute;n a internet: HABILITADA</font></div>';
 } else {
 	echo '<center><div class="text_mat"><font color=FF0000>Conexi&oacute;n a internet: DESHABILITADA</font></div>';
 }
@@ -68,7 +68,11 @@ MiauLDAP
 <tr><td colspan="2" align="center">
 <div class="text_error"><?echo $error_LDAP;?></div>
 <?php
-echo '<input name="submit" type="submit" value="  Entrar  " class="botones">';
+if ( $status=easyrule_block_alias_test(getIP(), 24) ) {
+	echo '<input name="submit" type="submit" value="  DESHABILITAR INTERNET  " class="botones">';
+	} else {
+	echo '<input name="submit" type="submit" value="  HABILITAR INTERNET  " class="botones">';
+}
 ?>
 
 </td>
