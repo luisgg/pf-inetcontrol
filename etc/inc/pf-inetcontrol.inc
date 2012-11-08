@@ -294,12 +294,12 @@ function easyrule_block_host($action, $host, $int = '24') {
 	if ($dirty) {
 		write_config();
 		$retval = filter_configure();
-		if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-			header("Location: firewall_aliases.php");
-			exit;
-		} else {
+//		if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+//			header("Location: firewall_aliases.php");
+//			exit;
+//		} else {
 			return true;
-		}
+//		}
 	} else {
 		return false;
 	}

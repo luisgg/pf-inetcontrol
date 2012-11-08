@@ -1,5 +1,9 @@
 <?php
 	require_once("pf-inetcontrol.inc");
+	require_once("pfsense-utils.inc");
+	require_once("filter.inc");
+	require_once("shaper.inc");
+
 	// variables de autenticacion y LDAP
 	$ldap['user']              = $_POST["usuario"];
 	$ldap['pass']              = $_POST["clave"];
@@ -40,9 +44,8 @@
 		//$_SESSION['clave']=$_POST["clave"];
 		//$_SESSION['usuario_fecha']= date("Y-n-j H:i:s");
     		//$pag=$_SERVER['PHP_SELF'];
-		echo "OK";
 		$lan_ip=getIP();
-		if ( easyrule_parse_status($lan_ip, 24) ) {
+		if ( easyrule_block_alias_test($lan_ip, 24) ) {
 			$action = 'block';
 		} else {
 		        $action = 'allow';
