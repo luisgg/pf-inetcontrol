@@ -39,88 +39,6 @@ require_once("functions.inc");
 require_once("util.inc");
 require_once("config.inc");
 
-function easyrule_find_rule_interface($int) {
-	global $config;
-	/* Borrowed from firewall_rules.php */
-	$iflist = get_configured_interface_with_descr(false, true);
-
-	if ($config['pptpd']['mode'] == "server")
-		$iflist['pptp'] = "PPTP VPN";
-
-	if (is_pppoe_server_enabled() && have_ruleint_access("pppoe"))
-		$iflist['pppoe'] = "PPPoE VPN";
-
-	if ($config['l2tp']['mode'] == "server")
-                $iflist['l2tp'] = "L2TP VPN";
-
-	/* add ipsec interfaces */
-	if (isset($config['ipsec']['enable']) || isset($config['ipsec']['client']['enable'])){
-		$iflist["enc0"] = "IPSEC";
-	}
-
-	if (isset($iflist[$int]))
-		return $int;
-
-	foreach ($iflist as $if => $ifd) {
-		if (strtolower($int) == strtolower($ifd))
-			return $if;
-	}
-
-	if (substr($int, 0, 4) == "ovpn")
-		return "openvpn";
-
-	return false;
-}
-
-function easyrule_block_rule_exists($int = 'wan') {
-	global $blockaliasname, $config;
-	/* No rules, we we know it doesn't exist */
-	if (!is_array($config['filter']['rule'])) {
-		return false;
-	}
-
-	/* Search through the rules for one referencing our alias */
-	foreach ($config['filter']['rule'] as $rule) {
-		if (!is_array($rule) || !is_array($rule['source']))
-			continue;
-		if ($rule['source']['address'] == $blockaliasname . strtoupper($int) && ($rule['interface'] == $int))
-			return true;
-	}
-	return false;
-}
-
-function easyrule_block_rule_create($int = 'wan') {
-	global $blockaliasname, $config;
-	/* If the alias doesn't exist, exit.
-	 * Can't create an empty alias, and we don't know a host */
-	if (easyrule_block_alias_getid($int) === false)
-		return false;
-
-	/* If the rule already exists, no need to do it again */
-	if (easyrule_block_rule_exists($int))
-		return true;
-
-	/* No rules, start a new array */
-	if (!is_array($config['filter']['rule'])) {
-		$config['filter']['rule'] = array();
-	}
-
-	filter_rules_sort();
-	$a_filter = &$config['filter']['rule'];
-
-	/* Make up a new rule */
-	$filterent = array();
-	$filterent['type'] = 'block';
-	$filterent['interface'] = $int;
-	$filterent['source']['address'] = $blockaliasname . strtoupper($int);
-	$filterent['destination']['any'] = '';
-	$filterent['descr'] = "Easy Rule: Blocked from Firewall Log View";
-
-	array_splice($a_filter, 0, 0, array($filterent));
-
-	return true;
-}
-
 function easyrule_block_alias_getid() {
 	global $blockaliasname, $config;
 	if (!is_array($config['aliases']))
@@ -302,48 +220,6 @@ function easyrule_block_host($action, $host, $int = '24') {
 //		}
 	} else {
 		return false;
-	}
-}
-
-function easyrule_pass_rule_add($int, $proto, $srchost, $dsthost, $dstport) {
-	global $config;
-
-	/* No rules, start a new array */
-	if (!is_array($config['filter']['rule'])) {
-		$config['filter']['rule'] = array();
-	}
-
-	filter_rules_sort();
-	$a_filter = &$config['filter']['rule'];
-
-	/* Make up a new rule */
-	$filterent = array();
-	$filterent['type'] = 'pass';
-	$filterent['interface'] = $int;
-	$filterent['descr'] = "Easy Rule: Passed from Firewall Log View";
-
-	if ($proto != "any")
-		$filterent['protocol'] = $proto;
-	else
-		unset($filterent['protocol']);
-
-	/* Default to only allow echo requests, since that's what most people want and
-	 *  it should be a safe choice. */
-	if ($proto == "icmp")
-		$filterent['icmptype'] = 'echoreq';
-
-	pconfig_to_address($filterent['source'], $srchost, 32);
-	pconfig_to_address($filterent['destination'], $dsthost, 32, '', $dstport, $dstport);
-
-	$a_filter[] = $filterent;
-
-	write_config($filterent['descr']);
-	$retval = filter_configure();
-	if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-		header("Location: firewall_rules.php?if={$int}");
-		exit;
-	} else {
-		return true;
 	}
 }
 
