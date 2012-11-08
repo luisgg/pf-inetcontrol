@@ -28,8 +28,8 @@ if ($status) {
 <tr><td colspan="2" align="center" class="texto_items"> 
 
 <div>
-MiauLDAP
-<div class="text_mat">by dk4nno</div>
+Poner aqui
+<div class="text_mat">una imagen chula</div>
 </div>
 </td>
 
@@ -64,7 +64,5 @@ if ( $status=easyrule_block_alias_test(getIP(), 24) ) {
 </table>
 
 <br>
-<div class="text_mat"><font color=666666>MiauLDAP | Autenticacion en PHP + LDAP | para quien lo necesite | Venezuela Edo. Trujillo</font>
-</div>
 
 
