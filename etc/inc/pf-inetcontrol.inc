@@ -398,4 +398,30 @@ function easyrule_parse_status($int, $src) {
 	return "Unknown error.";
 }
 
+function getIP() {
+	// $ip;
+	if (getenv("HTTP_CLIENT_IP"))
+		$ip = getenv("HTTP_CLIENT_IP");
+	else if(getenv("HTTP_X_FORWARDED_FOR"))
+		$ip = getenv("HTTP_X_FORWARDED_FOR");
+	else if(getenv("REMOTE_ADDR"))
+		$ip = getenv("REMOTE_ADDR");
+	else
+		$ip = "UNKNOWN";
+
+	$bytes=explode(".",$ip);
+	return $bytes[0].".".$bytes[1].".".$bytes[2].".0";
+}
+
+function getLAN() {
+	$ip=getIP();
+	return $ip."/24";
+}
+
+function getAula($ip) {
+	$bytes=explode(".",$ip);
+	$piso=$bytes[1]-1 ;
+	return "Piso: ".$piso." Aula: ".$bytes[2]." (Red: ".$ip.")" ;
+}
+
 ?>

@@ -1,6 +1,6 @@
 <?php
-echo "iniciando";
-// variables de autenticacion y LDAP
+	require_once("pf-inetcontrol.inc");
+	// variables de autenticacion y LDAP
 	$ldap['user']              = $_POST["usuario"];
 	$ldap['pass']              = $_POST["clave"];
 	$ldap['host']              = '10.10.0.250'; // nombre del host o servidor
@@ -41,12 +41,21 @@ echo "iniciando";
 		//$_SESSION['usuario_fecha']= date("Y-n-j H:i:s");
     		//$pag=$_SERVER['PHP_SELF'];
 		echo "OK";
-	} else {
-	        
-		echo "LDAP bind failed...";
-	        //print "<body onload=\"window.location='error.html';\">";
-        	//print "</body>";
-        	//exit();
-   	}    
+		$lan_ip=getIP();
+		if ( easyrule_parse_status($lan_ip, 24) ) {
+			$action = 'block';
+		} else {
+		        $action = 'allow';
+		}
+		if ( easyrule_block_host($action, $lan_ip, 24) ) {
+			// load success page
+	        	print "<body onload=\"window.location='success-".$action.".html';\">";
+        		print "</body>";
+        		exit();
+		}
+	}
+	print "<body onload=\"window.location='error.html';\">";
+        print "</body>";
+        exit();
 
 ?>
