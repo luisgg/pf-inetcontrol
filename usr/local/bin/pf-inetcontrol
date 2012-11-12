@@ -91,27 +91,39 @@ if (($argc > 1) && !empty($argv[1])) {
 		case 'block':
 			$message = easyrule_parse_block($argv[3], $argv[2]);
 			break;
+		case 'semiblock':
+			$message = easyrule_parse_semiblock($argv[3], $argv[2]);
+			break;
 		case 'pass':
 			$message = easyrule_parse_pass($argv[3], $argv[2]);
 			break;
 		case 'status':
 			$message = easyrule_parse_status($argv[3], $argv[2]);
 			break;
+		case 'locktype':
+			$message = easyrule_parse_locktype($argv[3], $argv[2]);
+			break;
 	}
 	echo $message . "\n";
 } else {
 	// Print usage:
 	echo "usage:\n";
-	echo "     " . basename($argv[0]) . " {block|pass|status} <source IP> <netmask>\n";
+	echo "     " . basename($argv[0]) . " {block|semiblock|pass|status|locktype} <source IP> <netmask>\n";
 	echo "\n";
 	echo " Block example:\n";
 	echo "     " . basename($argv[0]) . " block 1.2.3.4 24\n";
+	echo "\n";
+	echo " Restrict example:\n";
+	echo "     " . basename($argv[0]) . " semiblock 1.2.3.4 24\n";
 	echo "\n";
 	echo " Pass example (protocol with port):\n";
 	echo "     " . basename($argv[0]) . " pass 1.2.3.4 16\n";
 	echo "\n";
 	echo " Status example (protocol with port):\n";
 	echo "     " . basename($argv[0]) . " status 1.2.3.4 16\n";
+	echo "\n";
+	echo " Locktype example (protocol with port):\n";
+	echo "     " . basename($argv[0]) . " locktype 1.2.3.4 16\n";
 	echo "\n";
 }
 ?>

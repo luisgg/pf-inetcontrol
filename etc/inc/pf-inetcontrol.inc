@@ -34,38 +34,27 @@
 
 $blockaliasname = 'BlockInetLans';
 $managedaliasname = 'ManagedInetLans';
+$semiblockaliasname = 'SemiBlockInetLans';
 $protocols_with_ports = array('tcp', 'udp');
 require_once("functions.inc");
 require_once("util.inc");
 require_once("config.inc");
 
-function easyrule_block_alias_getid() {
+function easyrule_alias_getid($aliasname) {
 	global $blockaliasname, $config;
 	if (!is_array($config['aliases']))
 		return false;
 
 	/* Hunt down an alias with the name we want, return its id */
 	foreach ($config['aliases']['alias'] as $aliasid => $alias)
-		if ($alias['name'] == $blockaliasname)
+		if ($alias['name'] == $aliasname)
 			return $aliasid;
 
 	return false;
 }
 
-function managed_alias_getid() {
-	global $managedaliasname, $config;
-	if (!is_array($config['aliases']))
-		return false;
 
-	/* Hunt down an alias with the name we want, return its id */
-	foreach ($config['aliases']['alias'] as $aliasid => $alias)
-		if ($alias['name'] == $managedaliasname)
-			return $aliasid;
-
-	return false;
-}
-
-function easyrule_block_alias_del($host, $int = '24') {
+function easyrule_alias_del($host, $int = '24', $aliasname ) {
 	global $blockaliasname, $config;
 	/* If the host isn't a valid IP address, bail */
 	if (!is_ipaddr($host))
@@ -78,7 +67,7 @@ function easyrule_block_alias_del($host, $int = '24') {
 	$a_aliases = &$config['aliases']['alias'];
 
 	/* Try to get the ID if the alias already exists */
-	$id = easyrule_block_alias_getid();
+	$id = easyrule_alias_getid($aliasname);
 	if ($id === false)
 		return false;
 
@@ -102,8 +91,28 @@ function easyrule_block_alias_del($host, $int = '24') {
 
 }
 
-function easyrule_block_alias_test($host, $int = '24') {
-	global $blockaliasname, $config;
+function easyrule_block_alias_del($host, $int = '24' ) {
+	global $blockaliasname, $semiblockaliasname;
+	$ret1 = easyrule_alias_del($host, $int , $blockaliasname) ;
+	$ret2 = easyrule_alias_del($host, $int , $semiblockaliasname) ;
+	if ( $ret1 || $ret2 )
+		return true;
+
+	return false;
+}
+
+function easyrule_block_alias_type($host, $int = '24') {
+	global $blockaliasname, $semiblockaliasname;
+	if ( ! easyrule_alias_test($host, $int, $blockaliasname) )
+		return 1;
+	if ( ! easyrule_alias_test($host, $int, $semiblockaliasname) )
+		return 2;
+
+	return 0;
+}
+
+function easyrule_alias_test($host, $int = '24', $aliasname) {
+	global $config;
         /* If the host isn't a valid IP address, bail */
         if (!is_ipaddr($host))
                 return false;
@@ -112,7 +121,7 @@ function easyrule_block_alias_test($host, $int = '24') {
         if (!is_array($config['aliases']['alias']))
 		return true;
 	$a_aliases = &$config['aliases']['alias'];
-	$id = easyrule_block_alias_getid();
+	$id = easyrule_alias_getid($aliasname);
 	if ($id === false)
 		return true;
 	if (in_array($host.'/'.$int, explode(" ", $a_aliases[$id]['address'])))
@@ -120,8 +129,15 @@ function easyrule_block_alias_test($host, $int = '24') {
 	return true;
 }
 
-function easyrule_block_alias_add($host, $int = '24') {
-	global $blockaliasname, $config;
+function easyrule_block_alias_test($host, $int = '24') {
+	global $blockaliasname, $semiblockaliasname;
+	if ( easyrule_alias_test($host, $int, $blockaliasname) && easyrule_alias_test($host, $int, $semiblockaliasname) )
+		return true;
+	return false;
+}
+
+function easyrule_block_alias_add($host, $int = '24', $aliasname  = 'BlockInetLans') {
+	global $config, $managedaliasname;
 	/* If the host isn't a valid IP address, bail */
 	if (!is_ipaddr($host))
 		return false;
@@ -133,11 +149,11 @@ function easyrule_block_alias_add($host, $int = '24') {
 	$a_aliases = &$config['aliases']['alias'];
 
 	/* Try to get the ID if the alias already exists */
-	$id = easyrule_block_alias_getid();
+	$id = easyrule_alias_getid($aliasname);
 	if ($id === false)
 		unset($id);
 
-	$mngid = managed_alias_getid();
+	$mngid = easyrule_alias_getid($managedaliasname);
 	if (!($mngid === false) && $a_aliases[$mngid]) {
 		if (!(in_array($host.'/'.$int, explode(" ", $a_aliases[$mngid]['address']))))
 			return false;
@@ -182,7 +198,7 @@ function easyrule_block_alias_add($host, $int = '24') {
 }
 
 function easyrule_block_host($action, $host, $int = '24') {
-	global $retval;
+	global $blockaliasname, $semiblockaliasname, $retval;
 	/* Bail if the supplied host is not a valid IP address */
 	if (!is_ipaddr($host))
 		return false;
@@ -192,7 +208,10 @@ function easyrule_block_host($action, $host, $int = '24') {
 
 	/* Attempt to add this host to the alias */
 	if ($action == 'block') { 
-		if (easyrule_block_alias_add($host, $int))
+		if (easyrule_block_alias_add($host, $int, $blockaliasname))
+			$dirty = true;
+	} elseif ($action == 'semiblock')  {
+		if (easyrule_block_alias_add($host, $int, $semiblockaliasname))
 			$dirty = true;
 	} else {
 		if (easyrule_block_alias_del($host, $int))
@@ -240,6 +259,23 @@ function easyrule_parse_block($int, $src) {
 	return "Unknown error.";
 }
 
+function easyrule_parse_semiblock($int, $src) {
+	$action = 'semiblock';
+	if (!empty($src) && !empty($int)) {
+		if (!is_ipaddr($src)) {
+			return "Tried to ".$action." invalid IP: " . htmlspecialchars($src);
+		}
+		if (easyrule_block_host($action, $src, $int)) {
+			return "Network added successfully to ".$action." alias";
+		} else {
+			return "Failed to add Network to ".$action." alias";
+		}
+	} else {
+		return "Tried to ".$action." but had no host IP or interface";
+	}
+	return "Unknown error.";
+}
+
 function easyrule_parse_pass($int, $src) {
 	$action = 'allow';
 	if (!empty($src) && !empty($int)) {
@@ -268,6 +304,19 @@ function easyrule_parse_status($int, $src) {
 		} else {
 			return "Current status is LOCKED";
 		}
+	} else {
+		return "Tried to ".$action." but had no host IP or interface";
+	}
+	return "Unknown error.";
+}
+
+function easyrule_parse_locktype($int, $src) {
+	$action = 'check status';
+	if (!empty($src) && !empty($int)) {
+		if (!is_ipaddr($src)) {
+			return "Tried to ".$action." invalid IP: " . htmlspecialchars($src);
+		}
+		return easyrule_block_alias_type($src, $int);
 	} else {
 		return "Tried to ".$action." but had no host IP or interface";
 	}
