@@ -7,6 +7,7 @@
 	// variables de autenticacion y LDAP
 	$ldap['user']              = $_POST["usuario"];
 	$ldap['pass']              = $_POST["clave"];
+	$ldap['semi']              = $_POST["semiblock"];
 	$ldap['host']              = '10.10.0.250'; // nombre del host o servidor
 	$ldap['port']              = 389; // puerto del LDAP en el servidor
 	$ldap['dn']                = 'uid='.$ldap['user'].',ou=usuarios,dc=centro,dc=com'; // modificar respecto a los valores del LDAP
@@ -46,7 +47,11 @@
     		//$pag=$_SERVER['PHP_SELF'];
 		$lan_ip=getIP();
 		if ( easyrule_block_alias_test($lan_ip, 24) ) {
-			$action = 'block';
+			if ($ldap['semi'] ) {
+				$action = 'semiblock';
+			} else {
+				$action = 'block';
+			}
 		} else {
 		        $action = 'allow';
 		}
@@ -57,7 +62,7 @@
         		exit();
 		}
 	}
-	print "<body onload=\"window.location='error.html';\">";
+	print "<body onload=\"window.location='error.php';\">";
         print "</body>";
         exit();
 
